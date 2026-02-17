@@ -15,6 +15,7 @@ export interface BasicType {
 
 export interface Config {
   words_blacklist: Array<string>,
+  discordAvatar: boolean,
   debug: boolean,
   file_processor: "Koishi" | "QQBot",
   discord_default_avatar_color: 99 | 0 | 1 | 2 | 3 | 4,
@@ -48,6 +49,7 @@ export interface BridgeMessage {
 
 export const Config: Schema<Config> = Schema.object({
   words_blacklist: Schema.array(String).description("屏蔽词"),
+  discordAvatar: Schema.boolean().default(true).description("discord -> QQ：转发头像"),
   debug: Schema.boolean().description("开启 Debug 模式").default(false),
   file_processor: Schema.union([
     Schema.const("Koishi"),
@@ -77,5 +79,5 @@ export const Config: Schema<Config> = Schema.object({
       channel_id: Schema.string().description("频道ID"),
       self_id: Schema.string().description("自身ID")
     }))
-  }))
+  })).description('设置转发平台')
 });

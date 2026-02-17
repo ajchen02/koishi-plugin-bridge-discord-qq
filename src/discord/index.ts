@@ -71,10 +71,11 @@ export default class ProcessorDiscord {
 				}
 
 				case "face": {
-					const src = element.children[0].attrs.src;
-          const url = `${src}${src.indexOf("?quality=lossless") !== -1 ? "&size=44" : ""}`
 
-          if (config.file_processor === "Koishi") {
+					const src = element.children[0].attrs.src;
+        const url = `${src}${src.indexOf("?quality=lossless") !== -1 ? "&size=44" : ""}`
+
+        if (config.file_processor === "Koishi") {
 						const [img_blob, _, img_error] = await getBinary(url, ctx.http);
 						if (img_error) {
 							logger.error(img_error);

@@ -152,7 +152,7 @@ const main = async (ctx: Context, config: Config, session: Session) => {
 
               const payload_json = JSON.stringify({
                 content: message_body.text,
-                username: `[QQ:${sender.id}] ${nickname}`,
+                username: `[QQ] ${nickname}`,
                 avatar_url: sender.avatar,
                 embeds: message_body.embed,
                 // https://github.com/Cola-Ace/koishi-plugin-bridge-discord-qq/issues/8
@@ -221,7 +221,7 @@ const main = async (ctx: Context, config: Config, session: Session) => {
               const guild_id = await dc_bot.internal.getChannel(message_data.quote.channel.id);
               const quoted_nick = message_data.quote.user.nick === null ? message_data.quote.user.name : message_data.quote.user.nick;
 
-              message += `===== 转发消息 =====\nhttps://discord.com/channels/${guild_id["guild_id"]}/${message_data.quote.channel.id}/${message_data.quote.id}\n===== 以下为转发内容 =====\n${h.image(`${message_data.quote.user.avatar}?size=64`)}\n${quoted_nick.indexOf("[QQ:") !== -1 ? "" : "[Discord] "}${quoted_nick}:\n`;
+              message += `===== 转发消息 =====\nhttps://discord.com/channels/${guild_id["guild_id"]}/${message_data.quote.channel.id}/${message_data.quote.id}\n===== 以下为转发内容 =====\n${config.discordAvatar?h.image(`${message_data.quote.user.avatar}?size=64`):''}\n${quoted_nick.indexOf("[QQ:") !== -1 ? "" : "[Discord] "}${quoted_nick}:\n`;
             }
 
             if ("quote" in message_data && elements.length !== 0) {
@@ -253,6 +253,7 @@ const main = async (ctx: Context, config: Config, session: Session) => {
             }
 
             // 处理 Discord 默认头像颜色
+            
             let avatar_color = "";
             let avatar = `${sender.avatar}?size=64`;
             if (sender.avatar === null) {
@@ -262,11 +263,12 @@ const main = async (ctx: Context, config: Config, session: Session) => {
               }
               avatar = `https://cdn.discordapp.com/embed/avatars/${avatar_color}.png`;
             }
+            
 
             // https://github.com/Cola-Ace/koishi-plugin-bridge-discord-qq/issues/7
             // const avatar = sender.avatar === null ? "https://cdn.discordapp.com/embed/avatars/0.png" : `${sender.avatar}?size=64`;
 
-            let message_content = `${quoted_message_id === null ? "" : h.quote(quoted_message_id)}${h.image(avatar)}[Discord] ${nickname}:\n${message}`;
+            let message_content = `${quoted_message_id === null ? "" : h.quote(quoted_message_id)}${config.discordAvatar?h.image(avatar):""}[Discord] ${nickname}:\n${message}`;
             if (config.file_processor === "Koishi") {
               const [avatar_blob, avatar_type, avatar_error] = await getBinary(avatar, ctx.http);
               if (avatar_error) {
@@ -275,7 +277,7 @@ const main = async (ctx: Context, config: Config, session: Session) => {
               }
               const avatar_arrayBuffer = await avatar_blob.arrayBuffer();
               const avatar_resize_arrayBuffer = await sharp(avatar_arrayBuffer).resize(64, 64).toBuffer();
-              message_content = `${quoted_message_id === null ? "" : h.quote(quoted_message_id)}${h.image(avatar_resize_arrayBuffer, avatar_type)}[Discord] ${nickname}:\n${message}`;
+              message_content = `${quoted_message_id === null ? "" : h.quote(quoted_message_id)}${config.discordAvatar?h.image(avatar_resize_arrayBuffer, avatar_type):''}[Discord] ${nickname}:\n${message}`;
             }
 
             let retry_count = 0;
