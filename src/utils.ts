@@ -69,7 +69,9 @@ export class BlacklistDetector {
 
   public check(input: string): boolean {
     for (const word of this.blacklist) {
-      if (input.toLowerCase().indexOf(word.toLowerCase()) !== -1) return true;
+      input = input.toLowerCase()
+      if (input.indexOf(word.toLowerCase()) !== -1) return true;
+      if (RegExp(word).test(input) === true) return true;
     }
     return false;
   }

@@ -3,6 +3,7 @@ import { Schema } from 'koishi';
 export interface Constant {
   enable: boolean,
   note: string,
+  translate: boolean,
   from: Array<BasicType>,
   to: Array<BasicType>
 }
@@ -49,7 +50,7 @@ export interface BridgeMessage {
 
 export const Config: Schema<Config> = Schema.object({
   words_blacklist: Schema.array(String).description("屏蔽词"),
-  discordAvatar: Schema.boolean().default(true).description("discord -> QQ：转发头像"),
+  discordAvatar: Schema.boolean().default(true).description("Discord -> QQ：是否转发头像"),
   debug: Schema.boolean().description("开启 Debug 模式").default(false),
   file_processor: Schema.union([
     Schema.const("Koishi"),
@@ -67,8 +68,9 @@ export const Config: Schema<Config> = Schema.object({
   qq_file_limit: Schema.number().description("QQ 文件上传大小上限，单位为字节").default(20971520),
   discord_file_limit: Schema.number().description("Discord 文件上传大小上限，单位为字节（该选项不应设置太高，避免超过 Discord 本身的限制）").default(10485760),
   constant: Schema.array(Schema.object({
-    enable: Schema.boolean().description("启用").default(true),
+    enable: Schema.boolean().description("是否启用").default(true),
     note: Schema.string().description("备注"),
+    translate: Schema.boolean().default(false).description("是否翻译"),
     from: Schema.array(Schema.object({
       platform: Schema.string().description("来源平台"),
       channel_id: Schema.string().description("频道ID"),

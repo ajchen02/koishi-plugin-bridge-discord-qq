@@ -1,5 +1,6 @@
 import { Context, h, Session } from 'koishi';
 import { } from 'koishi-plugin-adapter-onebot';
+import {} from '@koishijs/translator';
 import { Config } from './config';
 import sharp from 'sharp';
 
@@ -12,7 +13,10 @@ import ProcessorDiscord from './discord';
 
 export const name = 'bridge-qq-discord';
 
-export const inject = ["database"]
+export const inject = {
+  required: ["database"],
+  optional: ['translator'],
+} 
 
 const main = async (ctx: Context, config: Config, session: Session) => {
   const sender = session.event.user;
@@ -57,7 +61,7 @@ const main = async (ctx: Context, config: Config, session: Session) => {
         for (const to of constant.to) {
           try {
             if (to.platform === "discord") {
-              // QQ -> Discord
+              //#region QQ -> Discord
               if (nickname === null) nickname = sender.name; // 如果群昵称为空则使用用户名
 
               const dc_bot = ctx.bots[`discord:${to.self_id}`];
@@ -128,7 +132,10 @@ const main = async (ctx: Context, config: Config, session: Session) => {
                       }
                     }
                   }
+
                   if (Blacklist.check(message)) return; // 黑名单检测
+                  if (constant.translate) { message += `\n machine translation：${await ctx.translator.translate({input: message, source: 'auto', target: 'zh'})}` }
+
                   message_body.embed = [{
                     author: {
                       name: (dc_message["user"]["nick"] === null ? dc_message["user"]["name"] : dc_message["user"]["nick"]),
@@ -206,12 +213,14 @@ const main = async (ctx: Context, config: Config, session: Session) => {
               continue;
             }
 
-            // Discord -> QQ
+            //#region Discord -> QQ
             const qqbot = ctx.bots[`${to.platform}:${to.self_id}`];
             const dc_bot = ctx.bots[`discord:${from.self_id}`];
 
             let message = "";
             let quoted_message_id = null;
+
+            const originalChannel = await dc_bot.internal.getChannel(channel_id)
 
             if ("quote" in message_data && message_data.content === "") { // 处理转发消息事件和标注消息事件
               const data = await dc_bot.internal.getChannelMessage(channel_id, message_data.id);
@@ -221,7 +230,7 @@ const main = async (ctx: Context, config: Config, session: Session) => {
               const guild_id = await dc_bot.internal.getChannel(message_data.quote.channel.id);
               const quoted_nick = message_data.quote.user.nick === null ? message_data.quote.user.name : message_data.quote.user.nick;
 
-              message += `===== 转发消息 =====\nhttps://discord.com/channels/${guild_id["guild_id"]}/${message_data.quote.channel.id}/${message_data.quote.id}\n===== 以下为转发内容 =====\n${config.discordAvatar?h.image(`${message_data.quote.user.avatar}?size=64`):''}\n${quoted_nick.indexOf("[QQ:") !== -1 ? "" : "[Discord] "}${quoted_nick}:\n`;
+              message += `===== 转发消息 =====\nhttps://discord.com/channels/${guild_id["guild_id"]}/${message_data.quote.channel.id}/${message_data.quote.id}\n===== 以下为转发内容 =====\n${config.discordAvatar?h.image(`${message_data.quote.user.avatar}?size=64`):''}\n${quoted_nick.indexOf("[QQ:") !== -1 ? "" : `[Discord #${guild_id["name"]}] `}${quoted_nick}:\n`;
             }
 
             if ("quote" in message_data && elements.length !== 0) {
@@ -268,7 +277,10 @@ const main = async (ctx: Context, config: Config, session: Session) => {
             // https://github.com/Cola-Ace/koishi-plugin-bridge-discord-qq/issues/7
             // const avatar = sender.avatar === null ? "https://cdn.discordapp.com/embed/avatars/0.png" : `${sender.avatar}?size=64`;
 
-            let message_content = `${quoted_message_id === null ? "" : h.quote(quoted_message_id)}${config.discordAvatar?h.image(avatar):""}[Discord] ${nickname}:\n${message}`;
+            if (Blacklist.check(message)) return; // 黑名单检测
+            if (constant.translate) { message += `\n 机翻：${await ctx.translator.translate({input: message, source: 'auto', target: 'zh'})}` }
+
+            let message_content = `${quoted_message_id === null ? "" : h.quote(quoted_message_id)}${config.discordAvatar?h.image(avatar):""}[Discord #${originalChannel['name']}] ${nickname}:\n${message}`;
             if (config.file_processor === "Koishi") {
               const [avatar_blob, avatar_type, avatar_error] = await getBinary(avatar, ctx.http);
               if (avatar_error) {
@@ -277,7 +289,7 @@ const main = async (ctx: Context, config: Config, session: Session) => {
               }
               const avatar_arrayBuffer = await avatar_blob.arrayBuffer();
               const avatar_resize_arrayBuffer = await sharp(avatar_arrayBuffer).resize(64, 64).toBuffer();
-              message_content = `${quoted_message_id === null ? "" : h.quote(quoted_message_id)}${config.discordAvatar?h.image(avatar_resize_arrayBuffer, avatar_type):''}[Discord] ${nickname}:\n${message}`;
+              message_content = `${quoted_message_id === null ? "" : h.quote(quoted_message_id)}${config.discordAvatar?h.image(avatar_resize_arrayBuffer, avatar_type):''}[Discord #${originalChannel['name']}] ${nickname}:\n${message}`;
             }
 
             let retry_count = 0;
