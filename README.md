@@ -8,9 +8,12 @@
 1. 修改了发送样式
     <details>
     <summary> 文本例 </summary>
-    [Discord #log-change-log] Real log():
 
+    ```
+    [Discord #log-change-log] Real log():
     This circuit exam  is so easy bruh wtf man
+    ```
+    
     </details>
 2. 增加了自动机翻的功能（需要translator服务）
 3. 黑名单加强：现在可以用正则了！
