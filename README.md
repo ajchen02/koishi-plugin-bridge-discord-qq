@@ -10,7 +10,7 @@
     <summary> 文本例 </summary>
 
     ```
-    [Discord #log-change-log] Real log():
+    [#log-change-log] Real log():
     This circuit exam  is so easy bruh wtf man
     ```
     

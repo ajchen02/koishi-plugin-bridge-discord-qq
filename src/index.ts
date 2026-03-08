@@ -280,7 +280,7 @@ const main = async (ctx: Context, config: Config, session: Session) => {
             if (Blacklist.check(message)) return; // 黑名单检测
             if (constant.translate) { message += `\n 机翻：${await ctx.translator.translate({input: message, source: 'auto', target: 'zh'})}` }
 
-            let message_content = `${quoted_message_id === null ? "" : h.quote(quoted_message_id)}${config.discordAvatar?h.image(avatar):""}[Discord #${originalChannel['name']}] ${nickname}:\n${message}`;
+            let message_content = `${quoted_message_id === null ? "" : h.quote(quoted_message_id)}${config.discordAvatar?h.image(avatar):""}[#${originalChannel['name']}] ${nickname}:\n${message}`;
             if (config.file_processor === "Koishi") {
               const [avatar_blob, avatar_type, avatar_error] = await getBinary(avatar, ctx.http);
               if (avatar_error) {
@@ -289,7 +289,7 @@ const main = async (ctx: Context, config: Config, session: Session) => {
               }
               const avatar_arrayBuffer = await avatar_blob.arrayBuffer();
               const avatar_resize_arrayBuffer = await sharp(avatar_arrayBuffer).resize(64, 64).toBuffer();
-              message_content = `${quoted_message_id === null ? "" : h.quote(quoted_message_id)}${config.discordAvatar?h.image(avatar_resize_arrayBuffer, avatar_type):''}[Discord #${originalChannel['name']}] ${nickname}:\n${message}`;
+              message_content = `${quoted_message_id === null ? "" : h.quote(quoted_message_id)}${config.discordAvatar?h.image(avatar_resize_arrayBuffer, avatar_type):''}[#${originalChannel['name']}] ${nickname}:\n${message}`;
             }
 
             let retry_count = 0;
